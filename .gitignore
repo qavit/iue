@@ -13,6 +13,7 @@ pnpm-debug.log*
 .env
 
 # Editor directories and files
+.idx/
 .vscode/
 .idea/
 *.swp

@@ -9,7 +9,8 @@ This script processes ODS files and converts them to JSON with the following fun
 - Parse "similarTerms" into an array, splitting by full-width spaces.
 - Trim trailing full-width spaces from "pronunciation" and "audioFileName".
 - Remove extraneous brackets from "sentenceZh" values.
-- Parse "definitions" into an ordered list format if it contains numbered markers.
+- Parse "definitions" into an ordered list format if it contains numbered markers, ensuring it is always an array.
+- Ensure "oppositeTerms" is always an array, splitting by full-width spaces.
 - Parse "examples" into structured arrays of dictionaries with "sentenceZh" and "sentenceHak" keys.
 - Split "pronunciation" into "standardPronunciation" (first sequence) and "pronunciationNotes" (notes after the first sequence).
 - Rename columns to standardized English keys.
@@ -78,7 +79,7 @@ def parse_definitions(cell_value):
     Returns:
         list: Parsed definitions.
     """
-    if pd.isna(cell_value):
+    if pd.isna(cell_value) or str(cell_value).strip() == "":
         return []
 
     definitions = []
@@ -87,7 +88,21 @@ def parse_definitions(cell_value):
             definitions.append(part.split('.', 1)[1].strip())
         else:
             definitions.append(part.strip())
-    return definitions if len(definitions) > 1 else definitions[0]
+    return definitions if definitions else []
+
+def parse_opposite_terms(cell_value):
+    """
+    Parse the "oppositeTerms" column into an array by splitting full-width spaces.
+
+    Parameters:
+        cell_value (str): The cell value to parse.
+
+    Returns:
+        list: Parsed opposite terms.
+    """
+    if pd.isna(cell_value) or str(cell_value).strip() == "":
+        return []
+    return [term.strip() for term in str(cell_value).split("\u3000") if term.strip()]
 
 def clean_string(cell_value):
     """
@@ -160,8 +175,8 @@ def convert_ods_to_json(input_directory, output_directory):
                 df["examples"] = df["examples"].apply(parse_example_cell)
                 df["similarTerms"] = df["similarTerms"].apply(parse_similar_terms)
                 df["definitions"] = df["definitions"].apply(parse_definitions)
+                df["oppositeTerms"] = df["oppositeTerms"].apply(parse_opposite_terms)
                 df["partOfSpeech"] = df["partOfSpeech"].apply(clean_string)
-                df["oppositeTerms"] = df["oppositeTerms"].apply(clean_string)
                 df["audioFileName"] = df["audioFileName"].apply(clean_string)
                 df["pronunciation"] = df["pronunciation"].apply(parse_pronunciation)
 
@@ -179,7 +194,8 @@ def convert_ods_to_json(input_directory, output_directory):
             pbar.update(1)
 
 # Example usage
-input_directory = "./input_directory"  # Replace with your ODS file directory
-output_directory = "./output_directory"  # Replace with your JSON output directory
+input_directory = "./input_dir"  # Replace with your ODS file directory
+output_directory = "./output_dir"  # Replace with your JSON output directory
 
-convert_ods_to_json(input_directory, output_directory)
+if __name__ == "__main__":
+    convert_ods_to_json(input_directory, output_directory)

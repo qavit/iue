@@ -1,10 +1,19 @@
 const mongoose = require('mongoose');
 
 const dictionaryEntrySchema = new mongoose.Schema({
-  word: { type: String, required: true },
-  pronunciation: [{ type: String }], 
-  definition: { type: String, required: true },
-  // ... other fields you want to store
+  id: { type: Number, required: true, unique: true }, 
+  term: { type: String, required: true },
+  partOfSpeech: { type: String },
+  termIndexes: [{ type: String }], 
+  pronunciation: {
+    standardPronunciation: { type: String },
+    pronunciationNotes: { type: String }
+  },
+  definitions: { type: String }, 
+  examples: [{ type: String }], 
+  similarTerms: [{ type: String }],
+  oppositeTerms: { type: String },
+  audioFileName: { type: String }
 });
 
 const DictionaryEntry = mongoose.model('DictionaryEntry', dictionaryEntrySchema);

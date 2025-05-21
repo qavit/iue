@@ -41,12 +41,13 @@ iue/
 │   └── server.ts          # 伺服器入口
 │
 ├── data/                  # 詞典資料
-│   ├── hak_sihai.json     # 四縣腔資料
-│   ├── hak_haolu.json     # 海陸腔資料
-│   ├── hak_dapu.json      # 大埔腔資料
-│   ├── hak_raoping.json   # 饒平腔資料
-│   ├── hak_zhaoan.json    # 詔安腔資料
-│   └── hak_sixian.json    # 四縣腔資料
+│   ├── oan.json           # 台語資料
+│   ├── hak_xi.json        # 四縣腔資料
+│   ├── hak_hoi.json       # 海陸腔資料
+│   ├── hak_tai.json       # 大埔腔資料
+│   ├── hak_ngiau.json     # 饒平腔資料
+│   ├── hak_zhio.json      # 詔安腔資料
+│   └── hak_sxi.json       # 南四縣腔資料
 │
 ├── docker/                # Docker 相關檔案
 │   ├── mongo/            # MongoDB 初始化腳本

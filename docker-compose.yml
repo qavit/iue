@@ -1,0 +1,108 @@
+version: '3.8'
+
+services:
+  # MongoDB 資料庫服務
+  mongodb:
+    image: mongo:6.0
+    container_name: iue-mongodb
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME:-root}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD:-example}
+      MONGO_INITDB_DATABASE: ${MONGO_INITDB_DATABASE:-iue}
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+      - ./docker/mongo/init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # MongoDB 網頁管理介面
+  mongo-express:
+    image: mongo-express:1.0
+    container_name: iue-mongo-express
+    restart: always
+    ports:
+      - "8081:8081"
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: ${MONGO_INITDB_ROOT_USERNAME:-root}
+      ME_CONFIG_MONGODB_ADMINPASSWORD: ${MONGO_INITDB_ROOT_PASSWORD:-example}
+      ME_CONFIG_MONGODB_URL: mongodb://${MONGO_INITDB_ROOT_USERNAME:-root}:${MONGO_INITDB_ROOT_PASSWORD:-example}@mongodb:27017/
+    depends_on:
+      mongodb:
+        condition: service_healthy
+
+  # 後端 API 服務
+  server:
+    build:
+      context: .
+      dockerfile: ./docker/server/Dockerfile
+      target: development
+    container_name: iue-server
+    restart: unless-stopped
+    ports:
+      - "5001:5001"
+    volumes:
+      - ./server:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - MONGODB_URI=mongodb://${MONGO_INITDB_ROOT_USERNAME:-root}:${MONGO_INITDB_ROOT_PASSWORD:-example}@mongodb:27017/${MONGO_INITDB_DATABASE:-iue}?authSource=admin
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - iue-network
+
+  # 前端應用程式
+  client:
+    build:
+      context: .
+      dockerfile: ./docker/client/Dockerfile
+      target: development
+    container_name: iue-client
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./client:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - REACT_APP_API_URL=http://localhost:5001
+    depends_on:
+      - server
+    networks:
+      - iue-network
+
+  # Nginx 反向代理 (生產環境使用)
+  nginx:
+    image: nginx:alpine
+    container_name: iue-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./docker/nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./docker/nginx/ssl:/etc/nginx/ssl:ro
+      - ./client/build:/usr/share/nginx/html:ro
+    depends_on:
+      - client
+      - server
+    networks:
+      - iue-network
+
+networks:
+  iue-network:
+    driver: bridge
+
+volumes:
+  mongodb_data:
+    driver: local

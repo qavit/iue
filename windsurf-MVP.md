@@ -15,23 +15,6 @@
 
 ---
 
-## 📁 建議專案結構
-
-```
-iue/
-├── frontend/         # React 前端
-├── backend/          # Express + MongoDB 後端
-├── data/             # 存放原始 JSON 字典資料與匯入工具
-│   ├── hak_sihai.json
-│   ├── hak_haolu.json
-│   └── ...
-├── .env.example
-├── docker-compose.yml
-└── README.md
-```
-
----
-
 ## 📊 詞目 JSON 格式（範例：客語四縣腔）
 
 ```json
@@ -93,16 +76,6 @@ iue/
 
 ---
 
-## ⚙️ 開發工具與建置
-
-* 使用 **Docker + docker-compose** 管理開發環境
-* `frontend` 容器：Node 18, React, Vite
-* `backend` 容器：Node 18, Express, MongoDB Client
-* `mongodb` 容器：預設 port 27017，掛載資料卷
-
-> 初始 `docker-compose up` 即可啟動全系統
-
----
 
 ## 🧱 任務拆解（可交由 SWE-1 模型逐一實作）
 
@@ -110,12 +83,4 @@ iue/
 
 * [ ] 建立 `data/` 目錄與客語 JSON 詞目解析
 * [ ] 撰寫 MongoDB 批次匯入腳本
-* [ ] 設計 API `/api/search` 與 `/api/entry/:id`
-* [ ] 撰寫 React 搜尋 UI 與結果頁面
-* [ ] 整合 Tailwind 做初步排版
-
-### 優先級 B
-
-* [ ] 加入發音音訊欄位顯示（可日後再補音檔）
-* [ ] 前端加上語言與腔調過濾器
-* [ ] 撰寫 Dockerfile 與 docker-compose.yml
+* [ ] 設計 API `/api/search`
